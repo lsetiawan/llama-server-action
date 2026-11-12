@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+issue_templates:
+  - name: Bug report
+    id: bug_report
+    description: File a reproducible problem with the software.
+    labels: [bug]
+    body: bug_report.yml
+  - name: Feature request
+    id: feature_request
+    description: Suggest an idea or enhancement.
+    labels: [enhancement]
+    body: feature_request.yml
