@@ -1,2 +1,4 @@
 # SCM syntax highlighting & preventing 3-way merges
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true
+# Shell scripts must keep LF endings so they run under Git Bash on Windows
+*.sh text eol=lf

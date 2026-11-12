@@ -1,0 +1,75 @@
+name: llama-server-action
+description:
+  Run Hugging Face GGUF language models with the llama.cpp server in GitHub
+  Actions
+author: lsetiawan
+
+inputs:
+  model:
+    description:
+      Hugging Face GGUF repository, as <user>/<repo> or <user>/<repo>:<quant>
+    required: true
+  prompt:
+    description:
+      Trusted instruction for the model, written by the workflow author
+    required: true
+  untrusted-input:
+    description:
+      Untrusted text for the model to work on, such as a pull request title or
+      an issue body. It is fenced and labeled as data, not instructions.
+    required: false
+  version:
+    description:
+      llama.cpp build tag, such as b12137. Defaults to the build pinned in
+      llama-cpp-pin.json.
+    required: false
+  cache:
+    description: Whether to cache the downloaded model
+    required: false
+    default: "true"
+
+outputs:
+  response:
+    description: Generated response message. Treat it as untrusted text.
+    value: ${{ steps.run.outputs.response }}
+
+runs:
+  using: composite
+  steps:
+    # Inputs are bound to environment variables here and never interpolated
+    # into a script, so they cannot be run as shell code.
+    - name: Set up llama.cpp
+      id: setup
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/setup.sh"
+      env:
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_VERSION: ${{ inputs.version }}
+        # Only a non-default build needs the GitHub API, and the token is only
+        # ever sent to github.com.
+        GH_TOKEN:
+          ${{ inputs.version && github.server_url == 'https://github.com' &&
+          github.token || '' }}
+
+    - name: Cache model
+      if: inputs.cache == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/llama-server-action
+        key:
+          llama-server-action-${{ runner.os }}-${{ steps.setup.outputs.model-key
+          }}
+
+    - name: Run model
+      id: run
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/run.sh"
+      env:
+        LLAMA_SERVER_BIN: ${{ steps.setup.outputs.bin }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_PROMPT: ${{ inputs.prompt }}
+        INPUT_UNTRUSTED: ${{ inputs.untrusted-input }}
+
+branding:
+  icon: terminal
+  color: gray-dark
