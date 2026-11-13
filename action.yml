@@ -14,6 +14,11 @@ inputs:
       Prompt for the model. It is handled as untrusted data and never run as
       code.
     required: true
+  instructions:
+    description:
+      Trusted task for the model, written by the workflow author. When set, the
+      prompt is fenced and labeled as data for that task, not as instructions.
+    required: false
   version:
     description:
       llama.cpp build tag, such as b12137. Defaults to the build pinned in
@@ -64,6 +69,7 @@ runs:
         LLAMA_SERVER_BIN: ${{ steps.setup.outputs.bin }}
         INPUT_MODEL: ${{ inputs.model }}
         INPUT_PROMPT: ${{ inputs.prompt }}
+        INPUT_INSTRUCTIONS: ${{ inputs.instructions }}
 
 branding:
   icon: terminal
