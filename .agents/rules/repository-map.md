@@ -5,16 +5,18 @@ what CI runs against it.
 
 ## Repository Overview
 
-This is a **blank project template** repository. It provides standardized
-community health files, pre-commit configurations, and AI agent setup. The
-repository itself contains no application code — it serves as a starting point
-for new projects.
+This repository is a **composite GitHub Action**. It downloads a pinned
+[llama.cpp](https://github.com/ggml-org/llama.cpp) build, starts `llama-server`
+with a Hugging Face GGUF model, sends one prompt, and returns the reply as the
+`response` output. It was started from a Pixi-based project template, which
+provides the community health files, pre-commit configuration, and AI agent
+setup.
 
 **Repository Stats:**
 
-- **Type:** Template repository / Boilerplate
-- **Size:** Small (~20 files)
-- **Languages:** Configuration files (TOML, YAML, Markdown)
+- **Type:** Composite GitHub Action
+- **Size:** Small
+- **Languages:** Bash, plus configuration files (TOML, YAML, Markdown)
 - **Build System:** Pixi (v0.49.0+)
 - **Platform:** macOS (osx-arm64) and Linux (linux-64, linux-aarch64)
 - **License:** BSD 3-Clause
@@ -33,9 +35,15 @@ for new projects.
 │   ├── dependabot.yml           # Dependabot config for GitHub Actions
 │   ├── pull_request_template.md # PR template (requires pre-commit checks)
 │   ├── release.yml              # Release notes configuration
-│   ├── workflows/               # GitHub Actions (Copilot agent setup)
+│   ├── workflows/               # GitHub Actions (tests, llama.cpp bump, Copilot agent setup)
 │   └── ISSUE_TEMPLATE/          # Issue templates (bug, feature)
 ├── knowledge/                   # OKF project memory, managed by the okf CLI (okf-memory skill)
+├── scripts/
+│   ├── setup.sh                 # Validates inputs; downloads and verifies llama.cpp
+│   ├── run.sh                   # Starts llama-server, sends the prompt, writes the output
+│   └── update-pin.sh            # Rewrites llama-cpp-pin.json (used by the bump workflow)
+├── action.yml                   # **THE ACTION**: inputs, outputs, and composite steps
+├── llama-cpp-pin.json           # Default llama.cpp build and its SHA-256 checksums
 ├── .pre-commit-config.yaml      # Pre-commit hook configuration
 ├── pixi.toml                    # **PRIMARY CONFIG**: Dependencies, tasks, features
 ├── pixi.lock                    # Lock file (auto-generated, don't manually edit)
@@ -50,10 +58,19 @@ for new projects.
 
 ## Continuous Integration & Validation
 
+**Action tests:** `.github/workflows/test.yml` runs the action on Ubuntu, macOS,
+and Windows with a tiny model. It is the only end-to-end check: nothing run
+locally starts a real `llama-server`.
+
+**llama.cpp bump:** `.github/workflows/bump-llama-cpp.yml` runs weekly, picks
+the newest llama.cpp build that is at least seven days old, and opens a pull
+request that updates `llama-cpp-pin.json`. Never edit that file by hand; run
+`scripts/update-pin.sh`.
+
 **Workflow security lint:** the `zizmor` pre-commit hook runs
-[zizmor](https://github.com/zizmorcore/zizmor) static analysis on workflow
-files. Changes to anything under `.github/workflows/` must keep this check
-passing.
+[zizmor](https://github.com/zizmorcore/zizmor) static analysis on workflow files
+and on `action.yml`. Changes to `action.yml` or anything under
+`.github/workflows/` must keep this check passing.
 
 **Copilot cloud agent:** `.github/workflows/copilot-setup-steps.yml` prepares
 the GitHub Copilot coding agent's environment (pixi install from `pixi.lock`,

@@ -1,0 +1,11 @@
+{
+  "version": "b12137",
+  "sha256": {
+    "llama-b12137-bin-macos-arm64.tar.gz": "65fc3b01ce7def2177982759b0af8c67221986114ef4c0a56e1e6b9218fa2185",
+    "llama-b12137-bin-macos-x64.tar.gz": "bbd4073ae799354e72b009b43adb3b960ac72a0c737ed0043924fb199ac5959c",
+    "llama-b12137-bin-ubuntu-arm64.tar.gz": "19bfb23aba0d52d0e32b22e8c13f776005100e6c606c858293df9a17ab4591e7",
+    "llama-b12137-bin-ubuntu-x64.tar.gz": "d9be8922022f26524efe5af7449b50414f0fc781e9b740042e4af7e50e511525",
+    "llama-b12137-bin-win-cpu-arm64.zip": "e33cbd04ed698b8b56e44d6db80f305eace0f4861d3bccef0694c73f18bdfe37",
+    "llama-b12137-bin-win-cpu-x64.zip": "20019b4103c0da8d1b7b65c4a1e542eba4e081ff2d584a7b8ab4723afc835b8d"
+  }
+}

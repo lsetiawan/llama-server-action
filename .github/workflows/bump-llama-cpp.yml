@@ -1,0 +1,80 @@
+# Keeps the action's default llama.cpp build current.
+#
+# Once a week this picks the newest llama.cpp build that has been public for at
+# least seven days, rewrites llama-cpp-pin.json with its version and SHA-256
+# checksums, and opens a pull request for a human to review. Nothing from the
+# new build is downloaded or run here.
+#
+# Requires the repository setting "Allow GitHub Actions to create and approve
+# pull requests" (Settings > Actions > General).
+#
+# Pull requests opened with the workflow token do not trigger other workflows,
+# so run the tests on the bump branch by hand before merging:
+#   gh workflow run test.yml --ref bump/llama-cpp-<version>
+
+name: Bump llama.cpp
+
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # push the bump branch
+      pull-requests: write # open the pull request
+
+    steps:
+      - name: Audit outbound network calls
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Pin the newest build past the cooldown
+        run: bash scripts/update-pin.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- llama-cpp-pin.json; then
+            echo "The pinned build is already current."
+            exit 0
+          fi
+
+          open=$(gh pr list --state open --json headRefName \
+            --jq '[.[] | select(.headRefName | startswith("bump/llama-cpp-"))] | length')
+          if [ "$open" -gt 0 ]; then
+            echo "A bump pull request is already open."
+            exit 0
+          fi
+
+          version=$(jq -r .version llama-cpp-pin.json)
+          branch="bump/llama-cpp-$version"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -m "chore: bump llama.cpp to $version" -- llama-cpp-pin.json
+          gh auth setup-git
+          git push origin "$branch"
+
+          gh pr create --head "$branch" \
+            --title "chore: bump llama.cpp to $version" \
+            --body "Updates the default llama.cpp build to \`$version\`, which has been public for at least seven days. The checksums are the SHA-256 digests GitHub recorded for the release archives.
+
+          Tests do not start on their own for this pull request. Run them before merging:
+
+              gh workflow run test.yml --ref $branch"

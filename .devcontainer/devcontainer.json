@@ -1,5 +1,5 @@
 {
-  "name": "project-template",
+  "name": "llama-server-action",
   "build": {
     "dockerfile": "Dockerfile"
   },

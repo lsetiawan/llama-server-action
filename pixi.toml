@@ -2,7 +2,7 @@
 # Project metadata and basic configuration
 authors = ["Don Setiawan"] # Project authors
 channels = ["https://prefix.dev/conda-forge"] # Conda channels for dependencies
-name = "project-template" # Project name
+name = "llama-server-action" # Project name
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"] # Supported platforms for development and deployment
 version = "0.1.0" # Project version
 
