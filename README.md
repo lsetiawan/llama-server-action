@@ -181,10 +181,12 @@ What the action does:
 What stays with the workflow author:
 
 - Nothing fully stops text inside a prompt from steering a model. Setting
-  `instructions` lowers that chance and does not remove it, and without
-  `instructions` nothing separates the task from the text. Treat `response` as
-  untrusted. Have a person review it before it decides anything that matters,
-  and never let it choose what a privileged step runs.
+  `instructions` is meant to lower that chance, and it does not remove it. Small
+  models often ignore the fence: in this repository's tests, a 135M-parameter
+  model followed an injected line anyway. Without `instructions`, nothing
+  separates the task from the text. Treat `response` as untrusted. Have a person
+  review it before it decides anything that matters, and never let it choose
+  what a privileged step runs.
 - The job log interprets
   [workflow commands](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#stopping-and-starting-workflow-commands).
   Stop them before printing a response that was produced from untrusted input.

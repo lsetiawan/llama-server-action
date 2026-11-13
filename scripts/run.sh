@@ -8,28 +8,41 @@
 # passed as command-line arguments.
 set -euo pipefail
 
-# Print a file to the job log with workflow commands switched off, so text
-# that came from the model or the server cannot issue commands such as
-# ::add-mask:: or ::error::.
-print_guarded() {
-  local token
-  token=$(openssl rand -hex 16)
-  echo "::group::$1"
-  echo "::stop-commands::$token"
-  cat "$2"
+# The llama-server log is streamed to the job log while the server runs, so a
+# slow download or a hang can be seen as it happens. Workflow commands are
+# switched off for that stretch, so text from the server or the model cannot
+# issue commands such as ::add-mask:: or ::error::.
+log_token=""
+tail_pid=""
+
+open_log() {
+  log_token=$(openssl rand -hex 16)
+  echo "::group::llama-server log"
+  echo "::stop-commands::$log_token"
+  tail -f server.log &
+  tail_pid=$!
+}
+
+close_log() {
+  if [ -z "$log_token" ]; then
+    return
+  fi
+  sleep 1 # let tail print the last lines
+  kill "$tail_pid" 2>/dev/null || true
+  wait "$tail_pid" 2>/dev/null || true
+  if [ -s response.json ] && [ "${1:-}" = with-response ]; then
+    echo "--- server response ---"
+    cat response.json
+  fi
   echo
-  echo "::$token::"
+  echo "::$log_token::"
   echo "::endgroup::"
+  log_token=""
 }
 
 fail() {
+  close_log with-response
   echo "::error::$1"
-  if [ -s response.json ]; then
-    print_guarded "Server response" response.json
-  fi
-  if [ -s server.log ]; then
-    print_guarded "llama-server log" server.log
-  fi
   exit 1
 }
 
@@ -88,17 +101,20 @@ url="http://127.0.0.1:$port"
 "$LLAMA_SERVER_BIN" -hf "$INPUT_MODEL" --host 127.0.0.1 --port "$port" \
   --no-webui >server.log 2>&1 &
 server_pid=$!
-trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+trap 'kill "$server_pid" $tail_pid 2>/dev/null || true' EXIT
+open_log
 
 # The server only starts listening once the model is downloaded and loaded.
-# There is no timeout here; the job's timeout-minutes is the limit.
-echo "Waiting for llama-server to download and load the model"
-until curl -fsS -o /dev/null "$url/health" 2>/dev/null; do
+# There is no overall timeout here; the job's timeout-minutes is the limit.
+# Each health check is bounded so that one stuck connection cannot block the
+# loop.
+until curl -fsS --max-time 5 -o /dev/null "$url/health" 2>/dev/null; do
   if ! kill -0 "$server_pid" 2>/dev/null; then
     fail "llama-server exited before the model was ready"
   fi
   sleep 2
 done
+echo "[llama-server-action] model ready, sending the prompt"
 
 curl -sS --fail-with-body -H 'Content-Type: application/json' \
   --data-binary @request.json -o response.json "$url/v1/chat/completions" ||
@@ -109,6 +125,7 @@ jq -r '.choices[0].message.content // empty' response.json | tr -d '\r' >respons
 if ! grep -q '[^[:space:]]' response.txt; then
   fail "The model returned an empty response"
 fi
+close_log
 
 # The delimiter is random and chosen after the response exists, so the
 # response cannot close the block early and write other outputs.
