@@ -1,11 +1,11 @@
 {
-  "version": "b12137",
+  "version": "b12223",
   "sha256": {
-    "llama-b12137-bin-macos-arm64.tar.gz": "65fc3b01ce7def2177982759b0af8c67221986114ef4c0a56e1e6b9218fa2185",
-    "llama-b12137-bin-macos-x64.tar.gz": "bbd4073ae799354e72b009b43adb3b960ac72a0c737ed0043924fb199ac5959c",
-    "llama-b12137-bin-ubuntu-arm64.tar.gz": "19bfb23aba0d52d0e32b22e8c13f776005100e6c606c858293df9a17ab4591e7",
-    "llama-b12137-bin-ubuntu-x64.tar.gz": "d9be8922022f26524efe5af7449b50414f0fc781e9b740042e4af7e50e511525",
-    "llama-b12137-bin-win-cpu-arm64.zip": "e33cbd04ed698b8b56e44d6db80f305eace0f4861d3bccef0694c73f18bdfe37",
-    "llama-b12137-bin-win-cpu-x64.zip": "20019b4103c0da8d1b7b65c4a1e542eba4e081ff2d584a7b8ab4723afc835b8d"
+    "llama-b12223-bin-macos-arm64.tar.gz": "66c6a8849ab5155898bb2d56e39d34b08f91a1019560a52510fbfd2ef599334e",
+    "llama-b12223-bin-macos-x64.tar.gz": "a92aaa2a77a12dece931b784b9fe980cd89ca415618d5348935c5da20838394a",
+    "llama-b12223-bin-ubuntu-arm64.tar.gz": "03bf76e2ee8f93e32f832eb47376fa053af765eb743de5ea3f5836297bec8d40",
+    "llama-b12223-bin-ubuntu-x64.tar.gz": "bc1fac9dffd4b8c6e2d2f80b02913a382e288ee212825119cadcaf6e62bcce65",
+    "llama-b12223-bin-win-cpu-arm64.zip": "240a2362d6a6ad1c7122ccab66a5fe5377c0e942d9a5a1d52b40946c68fe1fea",
+    "llama-b12223-bin-win-cpu-x64.zip": "3d10402849209453c83d57c556ce84613fca7628b03c93efaddcd9715206a904"
   }
 }
